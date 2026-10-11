@@ -1308,7 +1308,7 @@ const W_NUM = [320, 434, 494, 34], W_SWITCH = [318, 488, 300, 30], W_GUARDAR = [
 const L_WHATSAPP = [1256, 754, 162, 58];
 function scenePaginaWeb() {
   vgGround();
-  const salto = 25.0, guardar = 27.2, landing = 28.0, sello = SELLO;
+  const salto = 25.0, guardar = 27.0, landing = 27.4, sello = SELLO;
   const d = dogHome({ mood: TT >= sello ? 'happy' : 'calm', tag: TT < salto || (TT >= salto + 0.6 && TT < sello - 0.8) });
   supHome({ pose: poseAt([[E0, 'point'], [sello, 'wave'], [31.0, 'idle']]) });
   const scr = seqScreen([[E0, 'sup-web-info.jpg'], [guardar + 0.1, 'sup-web-info-ok.jpg']], [0, 0, 1440, 900], eraEnd() - 0.35);
@@ -1316,20 +1316,20 @@ function scenePaginaWeb() {
   const u = pawJump(salto, 0.6, vgDogTag(d.x, d.y, d.s), [nx, ny]);
   if (u >= 1 && TT < landing + 0.3) ringTrack(scr, [[salto + 0.6, W_NUM], [26.2, W_SWITCH], [26.8, W_GUARDAR], [guardar + 0.3, W_OK]], { r: 14 * UNIT, k: 1 - clamp((TT - landing) / 0.3) });
   const [gx, gy] = scr.map(...ctr(W_GUARDAR));
-  if (TT < landing) cursorPath([[26.5, 1900, 1040], [26.55, 1800, 1000], [26.9, gx + 16, gy + 6]], guardar);
+  if (TT < landing) cursorPath([[26.3, 1900, 1040], [26.35, 1800, 1000], [26.7, gx + 16, gy + 6]], guardar);
   // the public landing rises over the panel: the WhatsApp button is there
   let lw = null;
   if (TT >= landing) {
     const k = springEase(TT - landing, 150, 22), w = 820, h = w * 900 / 1440, x = 940, y = lerp(H + 40, 300, k);
     vgGlass(x - 12, y - 12, w + 24, h + 24, { r: 28 });
     // the view inside pushes in toward the WhatsApp button
-    const z = EZ.io(seg(TT, landing + 0.6, landing + 1.3)), C = [0, 0, 1440, 900].map((v, i) => lerp(v, [940, 590, 500, 312][i], z));
+    const z = EZ.io(seg(TT, landing + 0.35, landing + 0.85)), C = [0, 0, 1440, 900].map((v, i) => lerp(v, [940, 590, 500, 312][i], z));
     ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, 18); ctx.clip();
     const img = asset('sup-landing-contacto.jpg'); if (img) ctx.drawImage(img, ...C, x, y, w, h);
     ctx.restore();
     lw = { map: (px, py) => [x + (px - C[0]) * w / C[2], y + (py - C[1]) * h / C[3]] };
     chip('La página pública', x + 30, y - 46, landing + 0.3, (ix, iy, r) => vgPaw(ix, iy, r * 0.9, VG.blue700));
-    if (TT < sello + 0.2) ringTrack(lw, [[landing + 1.3, L_WHATSAPP]], { r: 26 * UNIT, k: 1 - clamp((TT - sello) / 0.2) });
+    if (TT < sello + 0.2) ringTrack(lw, [[landing + 0.8, L_WHATSAPP]], { r: 26 * UNIT, k: 1 - clamp((TT - sello) / 0.2) });
   }
   // the seal lands next to the WhatsApp button
   const [sx, sy] = lw ? lw.map(1085, 700) : [1600, 700];
