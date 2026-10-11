@@ -19,3 +19,9 @@ npm-debug.log*
 # Fotos subidas por los usuarios (se generan en uso, no van al repo)
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+# Video (animate): capturas intermedias y renders pesados
+pieces/*/assets/_png/
+pieces/*/frames/
+pieces/*/renders/frames/
+references/

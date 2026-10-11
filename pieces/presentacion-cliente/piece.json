@@ -1,0 +1,9 @@
+{
+  "name": "presentacion-cliente",
+  "title": "Clínica Veterinaria UDES — presentación para el cliente",
+  "format": { "width": 1920, "height": 1080, "fps": 24, "bpm": 120, "duration": 45.0, "frames": 1080 },
+  "formats": ["16:9"],
+  "storyFormat": "F5 fixed-hero journey (the dog holds its spot while the real screens change around it)",
+  "style": "vetui-glass",
+  "review": { "safe": { "top": 60, "bottom": 110, "right": 60 }, "refs": {} }
+}
