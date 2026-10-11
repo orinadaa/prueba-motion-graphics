@@ -47,6 +47,7 @@ await page.waitForURL(/panel/, { timeout: 15000 });
 
 // agendar: mascota + servicio
 await page.goto(BASE + '/agendar', { waitUntil: 'networkidle' });
+await foto('agendar-inicio');
 await page.getByRole('button', { name: /Luna/ }).first().click();
 await page.getByRole('button', { name: /Vacunación/ }).first().click();
 await foto('agendar-mascota', { alto: 1400 });
@@ -70,6 +71,12 @@ await foto('panel-campana');
 await page.keyboard.press('Escape');
 await page.goto(BASE + '/panel', { waitUntil: 'networkidle' });
 await foto('panel-citas', { alto: 1500 });
+// el detalle de la cita de Luna: reprogramar o cancelar
+await page.locator('article, li, div').filter({ hasText: /^Luna/ }).getByRole('button', { name: /Ver detalles/ }).first().click()
+  .catch(() => page.getByRole('button', { name: /Ver detalles/ }).nth(2).click());
+await foto('panel-detalle', { alto: 900 });
+await page.keyboard.press('Escape');
+await page.goto(BASE + '/panel', { waitUntil: 'networkidle' });
 await page.getByRole('tab', { name: /Mis mascotas/ }).first().click().catch(() => page.getByRole('button', { name: /Mis mascotas/ }).first().click());
 await foto('panel-mascotas', { alto: 1500 });
 
