@@ -70,11 +70,10 @@ const TIMELINE = {
   anchor: { t0: S.citas, t1: S.cierre, x: 330, y: 790 },
   acts: [
     { name: '1 Recepción', role: 'build', t0: S.recepcion, t1: S.inicio },
-    { name: '2 La sede', role: 'peak', t0: S.inicio, t1: S.reportes },
-    { name: '3 Reportes', role: 'journey', t0: S.reportes, t1: 37.5 },
-    { name: '4 Pausa', role: 'silence', t0: 37.5, t1: SELLO },
-    { name: '5 Listo', role: 'gift', t0: SELLO, t1: S.cierre },
-    { name: '6 Cierre', role: 'goodbye', t0: S.cierre, t1: S.fin },
+    { name: '2 La sede', role: 'peak', t0: S.inicio, t1: 37.5 },
+    { name: '3 Pausa', role: 'silence', t0: 37.5, t1: SELLO },
+    { name: '4 Listo', role: 'gift', t0: SELLO, t1: 40.75 },
+    { name: '5 Cierre', role: 'goodbye', t0: 40.75, t1: S.fin },
   ],
   board: [
     { t: 2.8, title: '1 · Recepción', sound: 'la administradora saluda; Luna llega', next: 'el inicio del panel' },
