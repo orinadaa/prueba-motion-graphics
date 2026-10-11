@@ -1,0 +1,9 @@
+{
+  "name": "presentacion-medico",
+  "title": "Clínica Veterinaria UDES — video de producto, vista del médico",
+  "format": { "width": 1920, "height": 1080, "fps": 24, "bpm": 120, "duration": 43.5, "frames": 1044 },
+  "formats": ["16:9"],
+  "storyFormat": "F5 fixed-hero journey (Luna and the vet hold their spot while the real screens change)",
+  "style": "vetui-glass",
+  "review": { "safe": { "top": 60, "bottom": 110, "right": 60 }, "refs": {} }
+}

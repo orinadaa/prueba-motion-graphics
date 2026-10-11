@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UDES vista médico</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #041a4d; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { max-width: 100vw; max-height: 100vh; width: auto; height: auto; display: block; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+"use strict";
+// =====================================================================
+//  VIDEO DE PRODUCTO, VISTA DEL MÉDICO — Sistema de citas, Clínica Veterinaria UDES. 16:9, 43.5s, 24fps, sin audio.
+//  Luna (la paciente) y el veterinario se quedan en su sitio mientras cambian las pantallas reales del médico:
+//  la placa ámbar de Luna salta a lo siguiente que hace el médico y termina como el sello de recordatorio enviado.
+//  Build: node <skill>/tools/build.mjs pieces/presentacion-medico   ·   ?t=12.5 congela un fotograma
+// =====================================================================
+const FORMATS = { '16:9': [1920, 1080] };
+const FORMAT = '16:9';
+const FPS = 24, [W, H] = FORMATS[FORMAT];
+const BPM = 120, GRID0 = 0, BEAT = 60 / BPM, E8 = BEAT / 2, E16 = BEAT / 4;
+const DURATION = 43.5;
+const NFRAMES = Math.round(DURATION * FPS);
+const LOOP_T = NFRAMES / FPS;
+const SAFE = { top: 60, bottom: 110, right: 60 };
+const HAND = '"Raleway", "Segoe UI", Arial, sans-serif';
+const CX = W / 2;
+const onBeat = (t) => +(GRID0 + Math.round((t - GRID0) / E8) * E8).toFixed(4);
+
+// the scenes (seconds, on the 8th grid)
+const S = { inicio: 0, panel: 4, agenda: 9, detalle: 14, record: 19, pacientes: 27.5, agendar: 33, cierre: 39, fin: DURATION };
+const ERA_LIST = [
+  [S.inicio, S.panel, () => sceneInicio()],
+  [S.panel, S.agenda, () => scenePanel()],
+  [S.agenda, S.detalle, () => sceneAgenda()],
+  [S.detalle, S.record, () => sceneDetalle()],
+  [S.record, S.pacientes, () => sceneRecordatorio()],
+  [S.pacientes, S.agendar, () => scenePacientes()],
+  [S.agendar, S.cierre, () => sceneAgendarMed()],
+  [S.cierre, S.fin, () => sceneCierreMed()],
+];
+const SHOTS = [
+  ['inicio', 0, S.inicio, S.panel, 'en la clínica a las 8:30: Luna espera, llega el veterinario'],
+  ['panel', 1, S.panel, S.agenda, 'panel médico: saludo e indicadores'],
+  ['agenda', 2, S.agenda, S.detalle, 'la agenda de la semana; Luna hoy a las 9:00'],
+  ['detalle', 3, S.detalle, S.record, 'detalle de la cita de Luna'],
+  ['record', 4, S.record, S.pacientes, 'crear recordatorio; el sello; el aviso de la dueña'],
+  ['pacientes', 5, S.pacientes, S.agendar, 'mis pacientes y su historial'],
+  ['agendar', 6, S.agendar, S.cierre, 'agendar a nombre del paciente'],
+  ['cierre', 7, S.cierre, S.fin, 'Luna vacunada y feliz; logo UDES'],
+];
+const SELLO = 24.25;
+const TIMELINE = {
+  width: W, height: H, fps: FPS, bpm: BPM, gridOffset: GRID0, duration: DURATION, frames: NFRAMES, loop: LOOP_T, safe: SAFE, aspect: FORMAT,
+  format: 'F5',
+  shots: SHOTS.map(([key, era, t0, t1, title], i) => ({ id: i + 1, key, era, t0, t1, title })),
+  cuts: [S.panel, S.agenda, S.detalle, S.record, S.pacientes, S.agendar, S.cierre],
+  morphs: [],
+  cues: { sello: SELLO },
+  anchor: { t0: S.agenda, t1: S.cierre, x: 330, y: 790 },
+  acts: [
+    { name: '1 Inicio', role: 'build', t0: S.inicio, t1: S.panel },
+    { name: '2 Agenda', role: 'journey', t0: S.panel, t1: S.record },
+    { name: '3 Recordatorio', role: 'peak', t0: S.record, t1: 23.25 },
+    { name: '4 Pausa', role: 'silence', t0: 23.25, t1: SELLO },
+    { name: '5 Enviado', role: 'gift', t0: SELLO, t1: S.pacientes },
+    { name: '6 Pacientes', role: 'journey', t0: S.pacientes, t1: S.cierre },
+    { name: '7 Cierre', role: 'goodbye', t0: S.cierre, t1: S.fin },
+  ],
+  board: [
+    { t: 2.6, title: '1 · Empieza el día', sound: 'Luna espera; llega el veterinario saludando', next: 'el panel médico' },
+    { t: 7.4, title: '2 · Panel médico', sound: 'Hola, Camilo; 1 cita hoy', next: 'la agenda' },
+    { t: 12.4, title: '3 · Agenda', sound: 'Luna, hoy 9:00', next: 'clic en la cita' },
+    { t: 17.8, title: '4 · Detalle de la cita', sound: 'foto, datos e información médica', next: 'Crear recordatorio' },
+    { t: 22.4, title: '5a · Crear recordatorio', sound: 'Vacunación, 17 nov, 9:00', next: 'Guardar' },
+    { t: 26.4, title: '5b · Recordatorio enviado', sound: 'el sello; el aviso le llega a María', next: 'Mis pacientes' },
+    { t: 31.6, title: '6 · Mis pacientes', sound: 'dueña, mascotas e historial', next: 'Agendar' },
+    { t: 37.4, title: '7 · Agendar al paciente', sound: 'la cita queda contigo, en tu sede', next: 'cierre' },
+    { t: 42.6, title: '8 · Cierre', sound: 'Luna vacunada, feliz; logo UDES', next: 'vuelve al inicio' },
+  ],
+  narration: [],
+};
+window.TIMELINE = TIMELINE;
+
+const ERA_BG = ERA_LIST.map(() => '#06338A');
+function pieceCam(era, t) { return null; }
