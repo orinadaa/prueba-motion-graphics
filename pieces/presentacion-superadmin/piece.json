@@ -1,0 +1,9 @@
+{
+  "name": "presentacion-superadmin",
+  "title": "Clínica Veterinaria UDES — video de producto, panel del superadministrador",
+  "format": { "width": 1920, "height": 1080, "fps": 24, "bpm": 120, "duration": 50.0, "frames": 1200 },
+  "formats": ["16:9"],
+  "storyFormat": "F5 fixed-hero journey (Luna and the superadmin hold their spot while the real screens change)",
+  "style": "vetui-glass",
+  "review": { "safe": { "top": 60, "bottom": 110, "right": 60 }, "refs": {} }
+}

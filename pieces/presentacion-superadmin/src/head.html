@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UDES superadmin</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #041a4d; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { max-width: 100vw; max-height: 100vh; width: auto; height: auto; display: block; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+"use strict";
+// =====================================================================
+//  VIDEO DE PRODUCTO, PANEL DEL SUPERADMINISTRADOR — Clínica Veterinaria UDES. 16:9, 50s, 24fps, sin audio.
+//  Luna y el superadministrador se quedan en su sitio mientras cambian las pantallas reales del panel del sistema:
+//  la placa ámbar de Luna salta a lo siguiente que hace el superadministrador; un cambio en el panel sale en la web: «PUBLICADO».
+//  Build: node <skill>/tools/build.mjs pieces/presentacion-superadmin   ·   ?t=12.5 congela un fotograma
+// =====================================================================
+const FORMATS = { '16:9': [1920, 1080] };
+const FORMAT = '16:9';
+const FPS = 24, [W, H] = FORMATS[FORMAT];
+const BPM = 120, GRID0 = 0, BEAT = 60 / BPM, E8 = BEAT / 2, E16 = BEAT / 4;
+const DURATION = 50.0;
+const NFRAMES = Math.round(DURATION * FPS);
+const LOOP_T = NFRAMES / FPS;
+const SAFE = { top: 60, bottom: 110, right: 60 };
+const HAND = '"Raleway", "Segoe UI", Arial, sans-serif';
+const CX = W / 2;
+const onBeat = (t) => +(GRID0 + Math.round((t - GRID0) / E8) * E8).toFixed(4);
+
+// the scenes (seconds, on the 8th grid)
+const S = { centro: 0, inicio: 4, sedes: 9, usuarios: 14, servicios: 19.5, web: 24.5, catalogos: 31.5, datos: 36, reportes: 41.5, cierre: 45.5, fin: DURATION };
+const ERA_LIST = [
+  [S.centro, S.inicio, () => sceneCentro()],
+  [S.inicio, S.sedes, () => sceneInicioSup()],
+  [S.sedes, S.usuarios, () => sceneSedesSup()],
+  [S.usuarios, S.servicios, () => sceneUsuarios()],
+  [S.servicios, S.web, () => sceneServiciosSup()],
+  [S.web, S.catalogos, () => scenePaginaWeb()],
+  [S.catalogos, S.datos, () => sceneCatalogos()],
+  [S.datos, S.reportes, () => sceneDatos()],
+  [S.reportes, S.cierre, () => sceneReportesSup()],
+  [S.cierre, S.fin, () => sceneCierreSup()],
+];
+const SHOTS = [
+  ['centro', 0, S.centro, S.inicio, 'el centro de control: las dos sedes en un mapa de vidrio'],
+  ['inicio', 1, S.inicio, S.sedes, 'inicio del sistema: indicadores y una tarjeta por sede'],
+  ['sedes', 2, S.sedes, S.usuarios, 'sedes: editar una sede'],
+  ['usuarios', 3, S.usuarios, S.servicios, 'usuarios: cuentas, roles y sedes'],
+  ['servicios', 4, S.servicios, S.web, 'servicios: el catálogo de la página web'],
+  ['web', 5, S.web, S.catalogos, 'página web: WhatsApp; el landing; PUBLICADO'],
+  ['catalogos', 6, S.catalogos, S.datos, 'catálogos: categorías, especies y razas'],
+  ['datos', 7, S.datos, S.reportes, 'datos: bitácora y copia de seguridad'],
+  ['reportes', 8, S.reportes, S.cierre, 'reportes de todas las sedes'],
+  ['cierre', 9, S.cierre, S.fin, 'el centro de control; logo UDES'],
+];
+const SELLO = 29.5;
+const TIMELINE = {
+  width: W, height: H, fps: FPS, bpm: BPM, gridOffset: GRID0, duration: DURATION, frames: NFRAMES, loop: LOOP_T, safe: SAFE, aspect: FORMAT,
+  format: 'F5',
+  shots: SHOTS.map(([key, era, t0, t1, title], i) => ({ id: i + 1, key, era, t0, t1, title })),
+  cuts: [S.inicio, S.sedes, S.usuarios, S.servicios, S.web, S.catalogos, S.datos, S.reportes, S.cierre],
+  morphs: [],
+  cues: { sello: SELLO },
+  anchor: { t0: S.sedes, t1: S.cierre, x: 330, y: 790 },
+  acts: [
+    { name: '1 Centro', role: 'build', t0: S.centro, t1: S.inicio },
+    { name: '2 El sistema', role: 'peak', t0: S.inicio, t1: 28.5 },
+    { name: '3 Pausa', role: 'silence', t0: 28.5, t1: SELLO },
+    { name: '4 Publicado', role: 'gift', t0: SELLO, t1: S.catalogos },
+    { name: '5 Datos', role: 'journey', t0: S.catalogos, t1: S.cierre },
+    { name: '6 Cierre', role: 'goodbye', t0: S.cierre, t1: S.fin },
+  ],
+  board: [
+    { t: 2.8, title: '1 · Centro de control', sound: 'las dos sedes unidas; el superadministrador', next: 'inicio del sistema' },
+    { t: 7.6, title: '2 · Inicio del sistema', sound: 'indicadores y una tarjeta por sede', next: 'sedes' },
+    { t: 13.0, title: '3 · Sedes', sound: 'foto, datos, activa', next: 'usuarios' },
+    { t: 18.6, title: '4 · Usuarios', sound: 'rol y sede de cada cuenta', next: 'servicios' },
+    { t: 23.6, title: '5 · Servicios', sound: 'categoría, precio, foto', next: 'página web' },
+    { t: 27.0, title: '6a · Página web', sound: 'WhatsApp de la clínica; guardar', next: 'el landing' },
+    { t: 30.6, title: '6b · Publicado', sound: 'el landing con WhatsApp; sello PUBLICADO', next: 'catálogos' },
+    { t: 35.0, title: '7 · Catálogos', sound: 'especies y razas', next: 'datos' },
+    { t: 40.4, title: '8 · Datos', sound: 'bitácora; copia de seguridad', next: 'reportes' },
+    { t: 44.6, title: '9 · Reportes', sound: 'todas las sedes', next: 'cierre' },
+    { t: 49.0, title: '10 · Cierre', sound: 'las dos sedes encendidas; logo UDES', next: 'vuelve al inicio' },
+  ],
+  narration: [],
+};
+window.TIMELINE = TIMELINE;
+
+const ERA_BG = ERA_LIST.map(() => '#06338A');
+function pieceCam(era, t) { return null; }

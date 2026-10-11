@@ -277,7 +277,8 @@ function vgDog(x, y, s, o = {}) {
 
 // ---------------------------------------------------------------------
 //  a second character: the vet. White coat over blue scrubs, a stethoscope, a friendly round face.
-//  vgVet(x, y, s, { pose: 'idle'|'wave'|'point'|'pet'|'tablet', look: -1|1, key })
+//  vgVet(x, y, s, { pose: 'idle'|'wave'|'point'|'pet'|'tablet', look: -1|1, key,
+//                   palette: {...} another outfit, steth: false (→ lanyard + ID; lanyard: false for none), hair: 'bun', glasses: true })
 //  (x, y) = between the feet on the ground; s = scale (1 = ~470px tall). Same flat, soft look as the dog.
 // ---------------------------------------------------------------------
 const VG_VET = { skin: '#F1C6A0', skinD: '#DDA67C', hair: '#3A2A22', coat: '#FFFFFF', coatD: '#D5E1F2', scrub: '#5BA8F5', pants: '#14306A', steth: '#4B5B75', cheek: 'rgba(232,120,120,0.28)' };
@@ -324,7 +325,7 @@ function vgVet(x, y, s, o = {}) {
   ctx.beginPath(); ctx.moveTo(-34, -336 + br); ctx.quadraticCurveTo(-44, -270, -16, -246); ctx.moveTo(34, -336 + br); ctx.quadraticCurveTo(40, -290, 18, -262); ctx.quadraticCurveTo(4, -246, -16, -246); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-16, -246); ctx.lineTo(-20, -212); ctx.stroke(); ctx.restore();
   ell(-20, -204, 14, 14, 0, '#C9D3E2'); ell(-20, -204, 8, 8, 0, '#E8EEF6');
-  } else {
+  } else if (o.lanyard !== false) {
     // a lanyard and an ID card
     ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = VG.blue600; ctx.lineWidth = 6;
     ctx.beginPath(); ctx.moveTo(-26, -334 + br); ctx.lineTo(-6, -250); ctx.moveTo(26, -334 + br); ctx.lineTo(6, -250); ctx.stroke(); ctx.restore();
@@ -345,6 +346,11 @@ function vgVet(x, y, s, o = {}) {
   ctx.beginPath(); ctx.moveTo(fx - 30, -12); ctx.quadraticCurveTo(fx - 20, -18, fx - 10, -13); ctx.moveTo(fx + 10, -13); ctx.quadraticCurveTo(fx + 20, -18, fx + 30, -12); ctx.stroke();
   ell(fx - 34, 22, 10, 6, 0, P.cheek); ell(fx + 34, 22, 10, 6, 0, P.cheek);
   ctx.beginPath(); ctx.moveTo(fx - 14, 28); ctx.quadraticCurveTo(fx, 42, fx + 14, 28); ctx.lineWidth = 4; ctx.strokeStyle = '#8A4B3A'; ctx.stroke();
+  if (o.glasses) {   // round glasses
+    ctx.lineWidth = 3.5; ctx.strokeStyle = VG.navy;
+    for (const ex of [-20, 20]) { ctx.beginPath(); ctx.roundRect(fx + ex - 15, -6, 30, 24, 10); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(fx - 5, 4); ctx.quadraticCurveTo(fx, 0, fx + 5, 4); ctx.moveTo(fx - 35, 2); ctx.lineTo(fx - 52, -2); ctx.moveTo(fx + 35, 2); ctx.lineTo(fx + 52, -2); ctx.stroke();
+  }
   ctx.restore();
   // the arm in front (right on screen): down, waving, pointing toward the screen, or holding the tablet
   let fr = [0.1, 0.05];
