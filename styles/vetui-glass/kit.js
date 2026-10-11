@@ -97,9 +97,9 @@ function vgFocus(scr, px, py, pw, ph, k, o = {}) {
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, s = 1.25 - 0.25 * k;
   const w = (x1 - x0 + 2 * m) * s, h = (y1 - y0 + 2 * m) * s;
   ctx.save(); ctx.globalAlpha = clamp(k * 2);
-  ctx.shadowColor = 'rgba(247,167,28,0.65)'; ctx.shadowBlur = 24 * UNIT;
+  ctx.shadowColor = o.glow ?? 'rgba(247,167,28,0.65)'; ctx.shadowBlur = 24 * UNIT;
   ctx.beginPath(); ctx.roundRect(cx - w / 2, cy - h / 2, w, h, o.r ?? Math.min(h / 2, 40 * UNIT));
-  ctx.lineWidth = 5 * UNIT; ctx.strokeStyle = VG.amber; ctx.stroke();
+  ctx.lineWidth = 5 * UNIT; ctx.strokeStyle = o.color ?? VG.amber; ctx.stroke();
   ctx.restore();
   return [cx, cy];
 }

@@ -209,9 +209,9 @@ function sceneSedes() {
   }
   if (TT >= swap) {
     const scr = panScreen('landing-sedes.jpg', [[swap, [0, 0, 1440]]], swap, eraEnd() - 0.35);
-    // the two cities pop over their cards
-    chip('Bucaramanga', ...scr.map(250, 360), swap + 0.5, icoPin);
-    chip('Valledupar', ...scr.map(830, 360), swap + 0.7, icoPin);
+    // the two sites light up in turn (white: information, not an action)
+    const SED = [[145, 279, 563, 527], [732, 279, 563, 527]];
+    SED.forEach((r, i) => { const t = swap + 0.5 + i * 0.5, k = springEase(TT - t, 260, 18) * (1 - clamp((TT - (salto - 0.2)) / 0.3)); if (k > 0) vgFocus(scr, ...r, k, { color: 'rgba(255,255,255,0.95)', glow: 'rgba(255,255,255,0.6)', r: 22 * UNIT, m: 6 }); });
     const [cx, cy] = scr.map(...ctr(NAV_AGENDAR));
     const u = pawJump(salto, 0.6, vgDogTag(d.x, d.y, d.s), [cx, cy]);
     if (u >= 1) vgFocus(scr, ...NAV_AGENDAR, springEase(TT - salto - 0.6, 260, 18));
