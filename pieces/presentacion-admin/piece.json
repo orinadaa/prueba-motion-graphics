@@ -1,0 +1,9 @@
+{
+  "name": "presentacion-admin",
+  "title": "Clínica Veterinaria UDES — video de producto, panel del administrador de sede",
+  "format": { "width": 1920, "height": 1080, "fps": 24, "bpm": 120, "duration": 45.0, "frames": 1080 },
+  "formats": ["16:9"],
+  "storyFormat": "F5 fixed-hero journey (Luna and the administrator hold their spot while the real screens change)",
+  "style": "vetui-glass",
+  "review": { "safe": { "top": 60, "bottom": 110, "right": 60 }, "refs": {} }
+}

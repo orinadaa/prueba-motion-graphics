@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UDES panel admin</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #041a4d; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { max-width: 100vw; max-height: 100vh; width: auto; height: auto; display: block; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+"use strict";
+// =====================================================================
+//  VIDEO DE PRODUCTO, PANEL DEL ADMINISTRADOR DE SEDE — Clínica Veterinaria UDES. 16:9, 45s, 24fps, sin audio.
+//  Luna y la administradora se quedan en su sitio mientras cambian las pantallas reales del panel de la sede:
+//  la placa ámbar de Luna salta a lo siguiente que hace la administradora y termina como el sello «REPORTE LISTO».
+//  Build: node <skill>/tools/build.mjs pieces/presentacion-admin   ·   ?t=12.5 congela un fotograma
+// =====================================================================
+const FORMATS = { '16:9': [1920, 1080] };
+const FORMAT = '16:9';
+const FPS = 24, [W, H] = FORMATS[FORMAT];
+const BPM = 120, GRID0 = 0, BEAT = 60 / BPM, E8 = BEAT / 2, E16 = BEAT / 4;
+const DURATION = 45.0;
+const NFRAMES = Math.round(DURATION * FPS);
+const LOOP_T = NFRAMES / FPS;
+const SAFE = { top: 60, bottom: 110, right: 60 };
+const HAND = '"Raleway", "Segoe UI", Arial, sans-serif';
+const CX = W / 2;
+const onBeat = (t) => +(GRID0 + Math.round((t - GRID0) / E8) * E8).toFixed(4);
+
+// the scenes (seconds, on the 8th grid)
+const S = { recepcion: 0, inicio: 4, citas: 9, nueva: 14, medicos: 19.5, pacientes: 24.5, horario: 28.5, reportes: 34, cierre: 40.5, fin: DURATION };
+const ERA_LIST = [
+  [S.recepcion, S.inicio, () => sceneRecepcion()],
+  [S.inicio, S.citas, () => sceneInicioAdm()],
+  [S.citas, S.nueva, () => sceneCitasAdm()],
+  [S.nueva, S.medicos, () => sceneNuevaCita()],
+  [S.medicos, S.pacientes, () => sceneMedicos()],
+  [S.pacientes, S.horario, () => scenePacientesAdm()],
+  [S.horario, S.reportes, () => sceneHorario()],
+  [S.reportes, S.cierre, () => sceneReportes()],
+  [S.cierre, S.fin, () => sceneCierreAdm()],
+];
+const SHOTS = [
+  ['recepcion', 0, S.recepcion, S.inicio, 'la recepción: la administradora tras el mostrador, llega Luna'],
+  ['inicio', 1, S.inicio, S.citas, 'inicio: indicadores, carga de la semana'],
+  ['citas', 2, S.citas, S.nueva, 'calendario de la sede; la cita de Luna'],
+  ['nueva', 3, S.nueva, S.medicos, 'nueva cita a nombre de un cliente'],
+  ['medicos', 4, S.medicos, S.pacientes, 'médicos y los servicios que presta cada uno'],
+  ['pacientes', 5, S.pacientes, S.horario, 'pacientes de la sede'],
+  ['horario', 6, S.horario, S.reportes, 'horario de atención por días, con el reloj'],
+  ['reportes', 7, S.reportes, S.cierre, 'reportes; el PDF real y el sello'],
+  ['cierre', 8, S.cierre, S.fin, 'recepción; logo UDES'],
+];
+const SELLO = 38.5;
+const TIMELINE = {
+  width: W, height: H, fps: FPS, bpm: BPM, gridOffset: GRID0, duration: DURATION, frames: NFRAMES, loop: LOOP_T, safe: SAFE, aspect: FORMAT,
+  format: 'F5',
+  shots: SHOTS.map(([key, era, t0, t1, title], i) => ({ id: i + 1, key, era, t0, t1, title })),
+  cuts: [S.inicio, S.citas, S.nueva, S.medicos, S.pacientes, S.horario, S.reportes, S.cierre],
+  morphs: [],
+  cues: { sello: SELLO },
+  anchor: { t0: S.citas, t1: S.cierre, x: 330, y: 790 },
+  acts: [
+    { name: '1 Recepción', role: 'build', t0: S.recepcion, t1: S.inicio },
+    { name: '2 La sede', role: 'peak', t0: S.inicio, t1: S.reportes },
+    { name: '3 Reportes', role: 'journey', t0: S.reportes, t1: 37.5 },
+    { name: '4 Pausa', role: 'silence', t0: 37.5, t1: SELLO },
+    { name: '5 Listo', role: 'gift', t0: SELLO, t1: S.cierre },
+    { name: '6 Cierre', role: 'goodbye', t0: S.cierre, t1: S.fin },
+  ],
+  board: [
+    { t: 2.8, title: '1 · Recepción', sound: 'la administradora saluda; Luna llega', next: 'el inicio del panel' },
+    { t: 7.6, title: '2 · Inicio', sound: 'indicadores y carga de la semana', next: 'el calendario' },
+    { t: 13.2, title: '3 · Calendario de citas', sound: 'todas las citas de la sede; Luna', next: 'nueva cita' },
+    { t: 18.6, title: '4 · Nueva cita', sound: 'cliente, servicio, fecha y médico', next: 'médicos' },
+    { t: 23.6, title: '5 · Médicos', sound: 'los servicios que presta cada uno', next: 'pacientes' },
+    { t: 27.8, title: '6 · Pacientes', sound: 'dueños y mascotas de la sede', next: 'horario' },
+    { t: 33.0, title: '7 · Horario de atención', sound: 'por días, con el reloj', next: 'reportes' },
+    { t: 39.6, title: '8 · Reportes', sound: 'el PDF real; sello REPORTE LISTO', next: 'cierre' },
+    { t: 44.0, title: '9 · Cierre', sound: 'recepción; logo UDES', next: 'vuelve al inicio' },
+  ],
+  narration: [],
+};
+window.TIMELINE = TIMELINE;
+
+const ERA_BG = ERA_LIST.map(() => '#06338A');
+function pieceCam(era, t) { return null; }

@@ -282,6 +282,7 @@ function vgDog(x, y, s, o = {}) {
 // ---------------------------------------------------------------------
 const VG_VET = { skin: '#F1C6A0', skinD: '#DDA67C', hair: '#3A2A22', coat: '#FFFFFF', coatD: '#D5E1F2', scrub: '#5BA8F5', pants: '#14306A', steth: '#4B5B75', cheek: 'rgba(232,120,120,0.28)' };
 function vgVet(x, y, s, o = {}) {
+  const P = { ...VG_VET, ...(o.palette || {}) };   // o.palette: another outfit (the administrator: a navy blazer)
   const pose = o.pose ?? 'idle', key = o.key ?? 'vet', look = o.look ?? 1;
   const br = Math.sin(TT * TAU * 0.45) * 2.5;
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
@@ -289,15 +290,15 @@ function vgVet(x, y, s, o = {}) {
   const rr = (x0, y0, w, h, r, f) => { ctx.beginPath(); ctx.roundRect(x0, y0, w, h, r); ctx.fillStyle = f; ctx.fill(); };
   ell(0, 4, 95, 13, 0, 'rgba(4,22,70,0.28)');
   // legs and shoes
-  rr(-38, -150, 32, 150, 14, VG_VET.pants); rr(6, -150, 32, 150, 14, VG_VET.pants);
+  rr(-38, -150, 32, 150, 14, P.pants); rr(6, -150, 32, 150, 14, P.pants);
   ell(-26, -6, 30, 12, 0, VG.white); ell(26, -6, 30, 12, 0, VG.white);
   // an arm: from the shoulder (sx, sy), angle a (0 = straight down), elbow bend b; returns the hand point
   const arm = (sx, sy, a, b, len = 92) => {
     const ex = sx + Math.sin(a) * len, ey = sy + Math.cos(a) * len, hx = ex + Math.sin(a + b) * len * 0.95, hy = ey + Math.cos(a + b) * len * 0.95;
-    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = VG_VET.coatD; ctx.lineWidth = 40;
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = P.coatD; ctx.lineWidth = 40;
     ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.lineTo(hx, hy); ctx.stroke();
-    ctx.strokeStyle = VG_VET.coat; ctx.lineWidth = 34; ctx.stroke(); ctx.restore();
-    ell(hx + Math.sin(a + b) * 10, hy + Math.cos(a + b) * 10, 17, 17, 0, VG_VET.skin);
+    ctx.strokeStyle = P.coat; ctx.lineWidth = 34; ctx.stroke(); ctx.restore();
+    ell(hx + Math.sin(a + b) * 10, hy + Math.cos(a + b) * 10, 17, 17, 0, P.skin);
     return [hx, hy];
   };
   // the arm behind (left on screen)
@@ -308,33 +309,41 @@ function vgVet(x, y, s, o = {}) {
   const hb = arm(-62, -318 + br, back[0], back[1]);
   // coat body
   ctx.beginPath(); ctx.moveTo(-64, -330 + br); ctx.quadraticCurveTo(-80, -230, -86, -118); ctx.lineTo(86, -118); ctx.quadraticCurveTo(80, -230, 64, -330 + br); ctx.closePath();
-  const g = ctx.createLinearGradient(-90, -330, 90, -120); g.addColorStop(0, VG_VET.coat); g.addColorStop(1, VG_VET.coatD); ctx.fillStyle = g; ctx.fill();
+  const g = ctx.createLinearGradient(-90, -330, 90, -120); g.addColorStop(0, P.coat); g.addColorStop(1, P.coatD); ctx.fillStyle = g; ctx.fill();
   // scrubs in the V, the lapels, a pocket with a pen, a badge
-  ctx.beginPath(); ctx.moveTo(-26, -334 + br); ctx.lineTo(0, -268 + br); ctx.lineTo(26, -334 + br); ctx.closePath(); ctx.fillStyle = VG_VET.scrub; ctx.fill();
-  ctx.save(); ctx.strokeStyle = VG_VET.coatD; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-26, -334 + br); ctx.lineTo(0, -268 + br); ctx.lineTo(26, -334 + br); ctx.closePath(); ctx.fillStyle = P.scrub; ctx.fill();
+  ctx.save(); ctx.strokeStyle = P.coatD; ctx.lineWidth = 4; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(-28, -332 + br); ctx.lineTo(0, -262 + br); ctx.lineTo(0, -122); ctx.moveTo(28, -332 + br); ctx.lineTo(0, -262 + br); ctx.stroke();
   ctx.strokeRect(22, -230, 42, 40); ctx.restore();
   rr(30, -244, 6, 26, 3, VG.navy);
-  rr(-62, -236, 40, 28, 5, VG.white); rr(-62, -236, 40, 8, 4, VG.blue600);
+  if (o.steth !== false) { rr(-62, -236, 40, 28, 5, VG.white); rr(-62, -236, 40, 8, 4, VG.blue600); }
   // neck, stethoscope, head
-  rr(-16, -350 + br, 32, 26, 10, VG_VET.skinD);
-  ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = VG_VET.steth; ctx.lineWidth = 7;
+  rr(-16, -350 + br, 32, 26, 10, P.skinD);
+  if (o.steth !== false) {
+  ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = P.steth; ctx.lineWidth = 7;
   ctx.beginPath(); ctx.moveTo(-34, -336 + br); ctx.quadraticCurveTo(-44, -270, -16, -246); ctx.moveTo(34, -336 + br); ctx.quadraticCurveTo(40, -290, 18, -262); ctx.quadraticCurveTo(4, -246, -16, -246); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-16, -246); ctx.lineTo(-20, -212); ctx.stroke(); ctx.restore();
   ell(-20, -204, 14, 14, 0, '#C9D3E2'); ell(-20, -204, 8, 8, 0, '#E8EEF6');
+  } else {
+    // a lanyard and an ID card
+    ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = VG.blue600; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(-26, -334 + br); ctx.lineTo(-6, -250); ctx.moveTo(26, -334 + br); ctx.lineTo(6, -250); ctx.stroke(); ctx.restore();
+    rr(-22, -252, 44, 56, 6, VG.white); rr(-22, -252, 44, 12, 5, VG.blue600); ell(0, -224, 9, 9, 0, P.skinD); rr(-14, -210, 28, 5, 2, '#C9D3E2');
+  }
   const hy = -402 + br, tilt = 0.04 * Math.sin(TT * TAU * 0.35) + (pose === 'pet' ? -0.12 : 0);
   ctx.save(); ctx.translate(0, hy); ctx.rotate(tilt);
-  ell(-56, 6, 12, 16, 0, VG_VET.skinD); ell(56, 6, 12, 16, 0, VG_VET.skinD);
-  ell(0, 0, 58, 62, 0, VG_VET.skin);
+  ell(-56, 6, 12, 16, 0, P.skinD); ell(56, 6, 12, 16, 0, P.skinD);
+  ell(0, 0, 58, 62, 0, P.skin);
   // hair: a rounded cap with a soft quiff
-  ctx.beginPath(); ctx.moveTo(-58, 2); ctx.bezierCurveTo(-64, -70, 40, -92, 60, -18); ctx.bezierCurveTo(46, -40, 10, -46, -22, -30); ctx.bezierCurveTo(-40, -22, -50, -10, -58, 2); ctx.closePath(); ctx.fillStyle = VG_VET.hair; ctx.fill();
-  ell(-18, -52, 34, 18, -0.3, VG_VET.hair);
+  ctx.beginPath(); ctx.moveTo(-58, 2); ctx.bezierCurveTo(-64, -70, 40, -92, 60, -18); ctx.bezierCurveTo(46, -40, 10, -46, -22, -30); ctx.bezierCurveTo(-40, -22, -50, -10, -58, 2); ctx.closePath(); ctx.fillStyle = P.hair; ctx.fill();
+  ell(-18, -52, 34, 18, -0.3, P.hair);
+  if (o.hair === 'bun') ell(-4, -80, 27, 23, 0, P.hair);
   // face (looks toward `look`)
   const fx = look * 6, blink = (B + 17) % 46 < 2;
   for (const ex of [-20, 20]) { if (blink) { ctx.beginPath(); ctx.moveTo(fx + ex - 8, 6); ctx.lineTo(fx + ex + 8, 6); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = VG.navy; ctx.stroke(); } else { ell(fx + ex, 6, 7, 9, 0, VG.navy); ell(fx + ex + 2, 3, 2.5, 2.5, 0, VG.white); } }
-  ctx.lineCap = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = VG_VET.hair;
+  ctx.lineCap = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = P.hair;
   ctx.beginPath(); ctx.moveTo(fx - 30, -12); ctx.quadraticCurveTo(fx - 20, -18, fx - 10, -13); ctx.moveTo(fx + 10, -13); ctx.quadraticCurveTo(fx + 20, -18, fx + 30, -12); ctx.stroke();
-  ell(fx - 34, 22, 10, 6, 0, VG_VET.cheek); ell(fx + 34, 22, 10, 6, 0, VG_VET.cheek);
+  ell(fx - 34, 22, 10, 6, 0, P.cheek); ell(fx + 34, 22, 10, 6, 0, P.cheek);
   ctx.beginPath(); ctx.moveTo(fx - 14, 28); ctx.quadraticCurveTo(fx, 42, fx + 14, 28); ctx.lineWidth = 4; ctx.strokeStyle = '#8A4B3A'; ctx.stroke();
   ctx.restore();
   // the arm in front (right on screen): down, waving, pointing toward the screen, or holding the tablet
