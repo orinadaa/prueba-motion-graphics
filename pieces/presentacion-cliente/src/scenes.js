@@ -46,7 +46,7 @@ function screenIn(name, sx, sy, sw, sh, o = {}) {
 //  1. EN CASA — the dog, worried, scratches its ear; a "?" pops over it
 // ---------------------------------------------------------------------
 const CASA_DOG = { x: LX(0.45), y: 930, s: 1.3 };
-const BUBBLE = () => [CASA_DOG.x + 190, CASA_DOG.y - 430, 74];
+const BUBBLE = () => [CASA_DOG.x + 200, CASA_DOG.y - 500, 74];
 function sceneCasa() {
   vgGround();
   // the window on the wall: glass panes, soft light through them

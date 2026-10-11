@@ -1,7 +1,7 @@
 // Captura las pantallas reales del sistema (landing y vista del cliente) para el video.
 // Requiere la app corriendo en local con los datos de ejemplo (backend: npm run demo:cargar).
 //   uso: node pieces/presentacion-cliente/tools/capturar.mjs [http://127.0.0.1:5173]
-// Agenda una cita real en la base local (Max, Vacunación, Bucaramanga) para capturar la confirmación.
+// Agenda una cita real en la base local (Luna, Vacunación, Bucaramanga) para capturar la confirmación.
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -47,7 +47,7 @@ await page.waitForURL(/panel/, { timeout: 15000 });
 
 // agendar: mascota + servicio
 await page.goto(BASE + '/agendar', { waitUntil: 'networkidle' });
-await page.getByRole('button', { name: /Max/ }).first().click();
+await page.getByRole('button', { name: /Luna/ }).first().click();
 await page.getByRole('button', { name: /Vacunación/ }).first().click();
 await foto('agendar-mascota', { alto: 1400 });
 // sede + fecha y hora

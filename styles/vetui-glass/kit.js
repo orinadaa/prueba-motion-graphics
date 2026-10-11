@@ -35,7 +35,7 @@ function vgGround(o = {}) {
   for (let i = 0; i < 9; i++) {
     const x = R.r(0.03, 0.97) * W, y0 = R.r(0, 1) * H, s = R.r(18, 34) * UNIT, rot = R.r(-0.6, 0.6);
     const y = ((y0 - TT * 14 * UNIT) % H + H) % H;
-    vgPaw(x, y, s, `rgba(255,255,255,${0.05 + 0.03 * R.r()})`, rot);
+    vgPaw(x, y, s, `rgba(255,255,255,${0.05 + 0.03 * R.f()})`, rot);
   }
   ctx.restore();
 }
@@ -161,70 +161,117 @@ function vgCursor(x, y, press = 0, s = UNIT) {
 }
 
 // ---------------------------------------------------------------------
-//  the hero: a white dog, sitting, facing right; navy collar with the amber paw tag.
+//  the hero: Luna, a cream French poodle like a plush toy — a fluffy pompom body, a big round head with a
+//  topknot, long curly ears with pink bows, big shiny eyes; a navy collar with the amber paw tag.
 //  vgDog(x, y, s, { mood: 'worried'|'calm'|'happy', scratch: 0..1, tag: false hides the tag, key })
-//  (x, y) = the point between its front paws on the ground; s = scale (1 = ~330px tall). Sets SPARK_AT.
+//  (x, y) = the point between its front paws on the ground; s = scale (1 = ~340px tall). Sets SPARK_AT.
 //  vgDogTag(x, y, s) returns where the tag hangs, for the paw that jumps to the next action.
 // ---------------------------------------------------------------------
-const vgDogTag = (x, y, s) => [x + 26 * s, y - 84 * s];
+const VG_FUR = { light: '#FFFBF4', base: '#F6EBDD', shade: '#E6D3BC', ear: '#EEDDC6', earShade: '#DCC4A6', bow: '#F7A1C4', bowD: '#E2709F', blush: 'rgba(242,128,160,0.35)' };
+const vgDogTag = (x, y, s) => [x + 22 * s, y - 112 * s];
+// a fluffy cloud: an ellipse ringed by curls (deterministic: the curl count and sizes come from the key)
+function vgPuff(cx, cy, rx, ry, fill, o = {}) {
+  const n = o.n ?? Math.max(8, Math.round((rx + ry) / 9)), cr = o.cr ?? Math.min(rx, ry) * 0.34, R = RNG('puff' + (o.key ?? ''));
+  ctx.fillStyle = fill; ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const a = i / n * TAU + (o.rot ?? 0), j = 0.85 + 0.3 * R.f();
+    const px = cx + Math.cos(a) * (rx - cr * 0.55), py = cy + Math.sin(a) * (ry - cr * 0.55);
+    ctx.moveTo(px + cr * j, py); ctx.arc(px, py, cr * j, 0, TAU);
+  }
+  ctx.moveTo(cx + rx - cr * 0.5, cy); ctx.ellipse(cx, cy, rx - cr * 0.5, ry - cr * 0.5, 0, 0, TAU);
+  ctx.fill();
+  if (o.curls === false) return;
+  // the curly coat: a scalloped rim and a few curls inside, in a soft shade of the fur
+  const R2 = RNG('curl' + (o.key ?? ''));
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineWidth = 2.6; ctx.strokeStyle = 'rgba(176,140,104,0.38)';
+  for (let i = 0; i < n; i++) {
+    const a = i / n * TAU + (o.rot ?? 0), px = cx + Math.cos(a) * (rx - cr * 0.55), py = cy + Math.sin(a) * (ry - cr * 0.55);
+    ctx.beginPath(); ctx.arc(px, py, cr * 0.92, a - 0.9, a + 0.9); ctx.stroke();
+  }
+  const m = Math.round((rx * ry) / 900);
+  for (let i = 0; i < m; i++) {
+    const a = R2.r(0, TAU), d = Math.sqrt(R2.f()) * 0.62, px = cx + Math.cos(a) * rx * d, py = cy + Math.sin(a) * ry * d, r = cr * R2.r(0.28, 0.42);
+    ctx.beginPath(); ctx.arc(px, py, r, R2.r(0, TAU), R2.r(0, TAU) + 3.6); ctx.stroke();
+  }
+  ctx.restore();
+}
+function vgFurFill(y0, y1) { const g = ctx.createLinearGradient(-60, y0, 40, y1); g.addColorStop(0, VG_FUR.light); g.addColorStop(0.6, VG_FUR.base); g.addColorStop(1, VG_FUR.shade); return g; }
+function vgBow(x, y, s, rot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+  for (const k of [-1, 1]) {
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(k * 18, -22, k * 40, -18, k * 36, 0); ctx.bezierCurveTo(k * 40, 18, k * 18, 22, 0, 0);
+    ctx.fillStyle = VG_FUR.bow; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(k * 8, -3); ctx.quadraticCurveTo(k * 22, -8, k * 28, 0); ctx.lineWidth = 2.5; ctx.strokeStyle = VG_FUR.bowD; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(k * 4, 6); ctx.lineTo(k * 14, 26); ctx.lineTo(k * 20, 20); ctx.closePath(); ctx.fillStyle = VG_FUR.bowD; ctx.fill();
+  }
+  ctx.beginPath(); ctx.ellipse(0, 0, 8, 9, 0, 0, TAU); ctx.fillStyle = VG_FUR.bowD; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-2, -3, 3, 3, 0, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fill();
+  ctx.restore();
+}
 function vgDog(x, y, s, o = {}) {
   const mood = o.mood ?? 'calm', key = o.key ?? 'dog';
   const happy = mood === 'happy', worried = mood === 'worried';
-  const breathe = Math.sin(TT * TAU * 0.5) * 0.012;
-  const wag = Math.sin(TT * TAU * (happy ? 3.2 : 1.1)) * (happy ? 0.55 : worried ? 0.08 : 0.25);
-  const tilt = worried ? 0.1 + 0.05 * Math.sin(TT * TAU * 0.4) : happy ? -0.05 * Math.sin(TT * TAU * 1.6) : 0.02 * Math.sin(TT * TAU * 0.3);
-  SPARK_AT = toScreen(x, y - 160 * s);
+  const breathe = Math.sin(TT * TAU * 0.5) * 0.015;
+  const wag = Math.sin(TT * TAU * (happy ? 3.2 : 1.1)) * (happy ? 0.5 : worried ? 0.08 : 0.22);
+  const tilt = worried ? 0.12 + 0.04 * Math.sin(TT * TAU * 0.4) : happy ? -0.06 * Math.sin(TT * TAU * 1.6) : 0.03 * Math.sin(TT * TAU * 0.3);
+  SPARK_AT = toScreen(x, y - 170 * s);
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
-  const fur = (P) => { const g = ctx.createLinearGradient(-120, -260, 60, 20); g.addColorStop(0, VG.fur); g.addColorStop(0.65, VG.fur); g.addColorStop(1, VG.furShade); return g; };
   const ell = (cx, cy, rx, ry, a, fill) => { ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, a, 0, TAU); ctx.fillStyle = fill; ctx.fill(); };
   // ground shadow
-  ell(-20, 4, 140, 16, 0, 'rgba(4,22,70,0.28)');
-  // tail
-  ctx.save(); ctx.translate(-105, -40); ctx.rotate(-0.5 + wag);
-  ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-55, -30, -48, -95); ctx.lineWidth = 22; ctx.lineCap = 'round'; ctx.strokeStyle = VG.furShade; ctx.stroke();
+  ell(-15, 4, 135, 15, 0, 'rgba(4,22,70,0.28)');
+  // tail: a pompom on a short stem
+  ctx.save(); ctx.translate(-92, -58); ctx.rotate(-0.6 + wag);
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-30, -38); ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.strokeStyle = VG_FUR.shade; ctx.stroke();
+  vgPuff(-38, -52, 26, 26, VG_FUR.base, { key: key + 'tail', n: 9 });
   ctx.restore();
-  // body (sitting) + back leg
+  // body and haunch
   ctx.save(); ctx.scale(1, 1 + breathe);
-  ell(-35, -78, 82, 80, -0.25, fur());
-  ell(-62, -18, 58, 26, 0, VG.furShade);
-  ell(-58, -24, 54, 24, 0, fur());
+  vgPuff(-58, -36, 46, 38, VG_FUR.shade, { key: key + 'haunch' });
+  vgPuff(-28, -88, 80, 70, vgFurFill(-160, 0), { key: key + 'body' });
   ctx.restore();
-  // front legs and paws (one lifts to scratch)
+  // front legs with pompom cuffs (one lifts to scratch)
   const sc = clamp(o.scratch ?? 0), lift = sc * (0.5 + 0.5 * Math.sin(TT * TAU * 5));
-  const leg = (lx, up) => { ctx.beginPath(); ctx.roundRect(lx - 15, -110 - up, 30, 110, 15); ctx.fillStyle = fur(); ctx.fill(); ell(lx + 6, -6 - up, 22, 12, 0, VG.white); };
-  leg(-5, 0); leg(32, lift * 40);
+  const leg = (lx, up) => { ctx.beginPath(); ctx.roundRect(lx - 13, -104 - up, 26, 92, 13); ctx.fillStyle = VG_FUR.base; ctx.fill(); vgPuff(lx + 2, -16 - up, 24, 18, VG_FUR.light, { key: key + 'cuff' + lx, n: 8 }); };
+  leg(-14, 0); leg(30, lift * 42);
   // chest
-  ell(18, -110, 46, 56, 0.15, VG.white);
+  vgPuff(10, -118, 46, 44, VG_FUR.light, { key: key + 'chest' });
+  // collar and the amber tag
+  ctx.save(); ctx.beginPath(); ctx.moveTo(-30, -144); ctx.quadraticCurveTo(12, -118, 58, -142);
+  ctx.lineWidth = 13; ctx.lineCap = 'round'; ctx.strokeStyle = VG.navy; ctx.stroke(); ctx.restore();
+  if (o.tag !== false) { const ty = -112 + 3 * Math.sin(TT * TAU * 0.9); ell(22, ty, 16, 16, 0, VG.amber); vgPaw(22, ty + 1, 9.5, VG.white); }
   // head
-  ctx.save(); ctx.translate(30, -168); ctx.rotate(tilt);
-  // back ear
-  ell(-40, -18, 20, 44, 0.45 + (worried ? 0.25 : 0), VG.earShade);
-  ell(0, 0, 66, 60, 0, fur());
-  // snout and nose
-  ell(52, 18, 42, 30, 0.08, VG.white);
-  ell(88, 6, 13, 10, 0, VG.navy);
-  ell(85, 3, 4, 2.5, 0, 'rgba(255,255,255,0.6)');
-  // mouth
-  ctx.lineCap = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = VG.navy;
-  if (happy) {
-    ctx.beginPath(); ctx.moveTo(84, 18); ctx.quadraticCurveTo(70, 44, 46, 32); ctx.closePath(); ctx.fillStyle = '#7A2E3B'; ctx.fill();
-    ell(64, 38, 11, 9, 0.2, VG.tongue);
-  } else { ctx.beginPath(); ctx.moveTo(84, 18); ctx.quadraticCurveTo(72, worried ? 26 : 30, 56, worried ? 30 : 28); ctx.stroke(); }
-  // eye (blinks), brow
-  const blink = (B + key.length * 5) % 50 < 2;
-  if (happy) { ctx.beginPath(); ctx.arc(26, -12, 9, Math.PI * 1.1, Math.PI * 1.9); ctx.lineWidth = 5; ctx.stroke(); }
-  else { ell(26, -12, 8, blink ? 1.5 : 10, 0, VG.navy); if (!blink) ell(29, -16, 3, 3, 0, VG.white); }
-  if (worried) { ctx.beginPath(); ctx.moveTo(12, -32); ctx.lineTo(36, -26); ctx.lineWidth = 4; ctx.stroke(); }
-  // front ear (floppy; droops when worried, perks when happy)
-  ell(-22, -10, 24, 50, (worried ? 0.35 : happy ? -0.05 : 0.15) + Math.sin(TT * TAU * 0.7) * 0.03, VG.ear);
-  ctx.restore();
-  // collar (under the chin, curved around the neck)
-  ctx.save(); ctx.beginPath(); ctx.moveTo(-18, -112); ctx.quadraticCurveTo(18, -88, 62, -110);
-  ctx.lineWidth = 15; ctx.lineCap = 'round'; ctx.strokeStyle = VG.navy; ctx.stroke(); ctx.restore();
-  if (o.tag !== false) {
-    const [tx, ty] = [26, -84 + 3 * Math.sin(TT * TAU * 0.9)];
-    ell(tx, ty, 17, 17, 0, VG.amber); vgPaw(tx, ty + 1, 10, VG.white);
+  ctx.save(); ctx.translate(14, -212); ctx.rotate(tilt);
+  const earSw = Math.sin(TT * TAU * 0.7) * 0.04, earDrop = worried ? 0.12 : happy ? -0.06 : 0;
+  // ears (behind the face), long and curly
+  for (const k of [-1, 1]) {
+    ctx.save(); ctx.translate(k * 58, -6); ctx.rotate(k * (0.12 + earDrop) + earSw);
+    vgPuff(k * 6, 48, 30, 58, k < 0 ? VG_FUR.earShade : VG_FUR.ear, { key: key + 'ear' + k, n: 12 });
+    ctx.restore();
   }
+  // topknot and the round head
+  vgPuff(0, -62, 46, 34, VG_FUR.base, { key: key + 'top', n: 10 });
+  vgPuff(0, 0, 74, 68, vgFurFill(-70, 70), { key: key + 'head', n: 16 });
+  // face: muzzle, cheeks, eyes, nose, mouth
+  ell(10, 30, 34, 25, 0, VG_FUR.light);
+  ell(-36, 22, 13, 8, 0, VG_FUR.blush); ell(56, 22, 13, 8, 0, VG_FUR.blush);
+  const blink = (B + key.length * 5) % 50 < 2;
+  for (const ex of [-22, 40]) {
+    if (happy) { ctx.beginPath(); ctx.arc(ex, 0, 11, Math.PI * 1.1, Math.PI * 1.9); ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.strokeStyle = VG.navy; ctx.stroke(); }
+    else if (blink) { ctx.beginPath(); ctx.moveTo(ex - 10, 0); ctx.lineTo(ex + 10, 0); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = VG.navy; ctx.stroke(); }
+    else { ell(ex, 0, 12, 14, 0, VG.navy); ell(ex + 4, -5, 5, 5, 0, VG.white); ell(ex - 4, 5, 2.2, 2.2, 0, 'rgba(255,255,255,0.8)'); }
+  }
+  if (worried) { ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.strokeStyle = VG_FUR.earShade; ctx.beginPath(); ctx.moveTo(-34, -26); ctx.lineTo(-12, -32); ctx.moveTo(52, -26); ctx.lineTo(30, -32); ctx.stroke(); }
+  ell(10, 20, 11, 8, 0, '#2A2233'); ell(7, 17, 3.5, 2.2, 0, 'rgba(255,255,255,0.7)');
+  ctx.lineCap = 'round'; ctx.lineWidth = 3; ctx.strokeStyle = '#2A2233';
+  if (happy) {
+    ctx.beginPath(); ctx.moveTo(-6, 34); ctx.quadraticCurveTo(10, 58, 26, 34); ctx.closePath(); ctx.fillStyle = '#8A3550'; ctx.fill();
+    ell(10, 46, 9, 8, 0, VG.tongue);
+  } else {
+    ctx.beginPath(); ctx.moveTo(10, 28); ctx.lineTo(10, 33); ctx.moveTo(-2, 34); ctx.quadraticCurveTo(4, 40, 10, 33); ctx.quadraticCurveTo(16, 40, 22, 34); ctx.stroke();
+  }
+  // the pink bows on top of the ears
+  vgBow(-58, -38, 1, -0.35 + earSw); vgBow(58, -38, 1, 0.35 + earSw);
+  ctx.restore();
   ctx.restore();
 }
 
@@ -241,7 +288,7 @@ const STYLE = {
   },
   blob(P, c) { ctx.save(); trace(P, true); ctx.fillStyle = c; ctx.fill(); ctx.lineWidth = 2 * UNIT; ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.stroke(); ctx.restore(); },
   hero(x, y, r) { vgDog(x, y + r, r / 170); },
-  heroColor: '#FFFFFF',
+  heroColor: "#F6EBDD",
   post() {},
   ones: true,
 };
